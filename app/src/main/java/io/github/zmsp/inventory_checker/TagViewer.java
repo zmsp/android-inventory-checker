@@ -51,6 +51,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import io.github.zmsp.inventory_checker.record.TextRecord;
 
 /**
  * An {@link Activity} which handles a broadcast of a new tag that the device just discovered.
@@ -67,6 +68,8 @@ public class TagViewer extends Activity {
     private AlertDialog mDialog;
 
     private List<Tag> mTags = new ArrayList<>();
+
+    private List<String> mText = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,6 +167,8 @@ public class TagViewer extends Activity {
                 for (int i = 0; i < rawMsgs.length; i++) {
                     msgs[i] = (NdefMessage) rawMsgs[i];
                 }
+                Tag tag = (Tag) intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+                mTags.add(tag);
             } else {
                 // Unknown tag type
                 byte[] empty = new byte[0];
@@ -175,6 +180,8 @@ public class TagViewer extends Activity {
                 msgs = new NdefMessage[] { msg };
                 mTags.add(tag);
             }
+            String nfcText = ((TextRecord)NdefMessageParser.parse(msgs[0]).get(0)).getText();
+            mText.add(nfcText);
             // Setup the views
             buildTagViews(msgs);
         }
@@ -447,17 +454,29 @@ public class TagViewer extends Activity {
                 copyIds(getIdsDec());
                 return true;
             case R.id.menu_copy_reversed_dec:
-
-                System.out.println("copy pressed");
                 copyIds(getIdsReversedDec());
+                return true;
+            case R.id.menu_share:
+                share(getText());
+                return true;
+            case R.id.menu_copy_text:
+                copyIds(getText());
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
+    private void share(String text) {
+        Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+        sharingIntent.setType("text/plain");;
+        sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "NFC Tag Result");
+        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, text);
+        startActivity(Intent.createChooser(sharingIntent, "Share via"));
+    }
     private void clearTags() {
         mTags.clear();
+        mText.clear();
         for (int i = mTagContent.getChildCount() -1; i >= 0 ; i--) {
             View view = mTagContent.getChildAt(i);
             if (view.getId() != R.id.tag_viewer_text) {
@@ -471,6 +490,15 @@ public class TagViewer extends Activity {
         ClipData clipData = ClipData.newPlainText("NFC IDs", text);
         clipboard.setPrimaryClip(clipData);
         Toast.makeText(this, mTags.size() + " IDs copied", Toast.LENGTH_SHORT).show();
+    }
+    private String getText() {
+        StringBuilder builder = new StringBuilder();
+        for (String text: mText) {
+            builder.append(text);
+            builder.append('\n');
+        }
+        builder.setLength(builder.length() - 1); // Remove last new line
+        return builder.toString();
     }
 
     private String getIdsHex() {

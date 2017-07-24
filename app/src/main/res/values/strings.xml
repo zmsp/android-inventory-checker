@@ -16,7 +16,7 @@
 -->
 <resources>
     <string name="app_name">NFC Inventory Checker</string>
-    <string name="intro_message">This app reads NFC tags.</string>
+    <string name="intro_message">NFC Inventory Checker app reads text embedded in an NFC tag. It\'s capable of sharing the tags via various protocol, launch URL and more. This app is intended to be a used as inventory scanner. To report issues or get documentations go to  https://github.com/zmsp/android-inventory-checker </string>
     <string name="error">Error</string>
     <string name="no_nfc">No NFC found on this device</string>
     <string name="nfc_disabled">NFC is not enabled. Please go to the wireless settings to enable it.</string>
